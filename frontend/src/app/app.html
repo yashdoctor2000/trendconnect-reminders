@@ -1,0 +1,227 @@
+<div class="layout">
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">Patient Reminders</div>
+      <button class="btn btn-primary" (click)="toggleForm()">
+        {{ showForm() ? 'Cancel' : '+ New Reminder' }}
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- Create form -->
+    @if (showForm()) {
+      <section class="card form-card">
+        <h2 class="section-title">New Reminder</h2>
+
+        @if (createError()) {
+          <div class="alert alert-error">{{ createError() }}</div>
+        }
+
+        <form #f="ngForm" (ngSubmit)="onSubmit(f)" novalidate>
+          <div class="form-grid">
+
+            <div class="field">
+              <label for="patientName">Patient Name *</label>
+              <input id="patientName" name="patientName" type="text"
+                     [(ngModel)]="form.patientName" required minlength="1"
+                     #patientName="ngModel"
+                     [class.invalid]="patientName.invalid && patientName.touched" />
+              @if (patientName.invalid && patientName.touched) {
+                <span class="field-error">Patient name is required.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="title">Title *</label>
+              <input id="title" name="title" type="text"
+                     [(ngModel)]="form.title" required minlength="1"
+                     #title="ngModel"
+                     [class.invalid]="title.invalid && title.touched" />
+              @if (title.invalid && title.touched) {
+                <span class="field-error">Title is required.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="dueDate">Due Date *</label>
+              <input id="dueDate" name="dueDate" type="datetime-local"
+                     [(ngModel)]="form.dueDate" required
+                     [min]="minDueDate()"
+                     #dueDate="ngModel"
+                     [class.invalid]="dueDate.invalid && dueDate.touched" />
+              @if (dueDate.invalid && dueDate.touched) {
+                <span class="field-error">A future due date is required.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label for="recurrence">Recurrence</label>
+              <select id="recurrence" name="recurrence" [(ngModel)]="form.recurrence">
+                <option value="None">None</option>
+                <option value="Daily">Daily</option>
+                <option value="Weekly">Weekly</option>
+              </select>
+            </div>
+
+            <div class="field field-full">
+              <label for="notes">Notes <span class="muted">(sensitive — optional)</span></label>
+              <textarea id="notes" name="notes" rows="3"
+                        [(ngModel)]="form.notes"></textarea>
+            </div>
+
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="createLoading()">
+              @if (createLoading()) { Saving… } @else { Save Reminder }
+            </button>
+          </div>
+        </form>
+      </section>
+    }
+
+    <!-- Success banner -->
+    @if (createSuccess()) {
+      <div class="alert alert-success">Reminder created successfully.</div>
+    }
+
+    <!-- Filters & Sort -->
+    <section class="toolbar">
+      <div class="toolbar-row">
+        <div class="toolbar-group">
+          <label>Status:</label>
+          <select [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()">
+            <option value="">All</option>
+            <option value="Open">Open</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+
+        <div class="toolbar-group">
+          <label>Due from:</label>
+          <input type="date" [(ngModel)]="dueDateFrom" (ngModelChange)="onFilterChange()" />
+        </div>
+
+        <div class="toolbar-group">
+          <label>Due to:</label>
+          <input type="date" [(ngModel)]="dueDateTo" (ngModelChange)="onFilterChange()" />
+        </div>
+
+        <div class="toolbar-group">
+          <label>Sort by:</label>
+          <select [(ngModel)]="sortBy" (ngModelChange)="onFilterChange()">
+            <option value="dueDate">Due Date</option>
+            <option value="createdAt">Created At</option>
+          </select>
+          <select [(ngModel)]="sortDir" (ngModelChange)="onFilterChange()">
+            <option value="asc">Asc</option>
+            <option value="desc">Desc</option>
+          </select>
+        </div>
+
+        <button class="btn btn-sm" (click)="clearFilters()">Clear</button>
+      </div>
+    </section>
+
+    <!-- Complete error -->
+    @if (completeError()) {
+      <div class="alert alert-error">{{ completeError() }}</div>
+    }
+
+    <!-- List -->
+    @if (listLoading()) {
+      <div class="state-msg">Loading…</div>
+    } @else if (loadError()) {
+      <div class="alert alert-error">{{ loadError() }}</div>
+    } @else if (reminders().length === 0) {
+      <div class="state-msg muted">No reminders found.</div>
+    } @else {
+      <div class="card table-card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Title</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Recurrence</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of reminders(); track r.id) {
+              <tr [class.done-row]="r.status === 'Done'">
+                <td>{{ r.patientName }}</td>
+                <td>{{ r.title }}</td>
+                <td>{{ r.dueDate | date:'medium' }}</td>
+                <td><span class="badge" [class.badge-done]="r.status === 'Done'">{{ r.status }}</span></td>
+                <td>{{ r.recurrence }}</td>
+                <td class="actions-cell">
+                  <button class="btn btn-history" (click)="openHistory(r)">History</button>
+                  @if (r.status === 'Open') {
+                    <button class="btn btn-complete"
+                            [disabled]="completingId() === r.id"
+                            (click)="complete(r.id)">
+                      {{ completingId() === r.id ? '…' : 'Complete' }}
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button class="btn btn-sm" [disabled]="page() === 1" (click)="goToPage(page() - 1)">Prev</button>
+          <span class="page-info">Page {{ page() }} of {{ totalPages() }} &nbsp;({{ totalCount() }} total)</span>
+          <button class="btn btn-sm" [disabled]="page() >= totalPages()" (click)="goToPage(page() + 1)">Next</button>
+        </div>
+      } @else {
+        <p class="muted page-info">{{ totalCount() }} reminder{{ totalCount() === 1 ? '' : 's' }}</p>
+      }
+    }
+
+  </main>
+</div>
+
+<!-- History modal -->
+@if (historyReminder()) {
+  <div class="modal-backdrop" (click)="closeHistory()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Audit History</div>
+          <div class="modal-sub">{{ historyReminder()!.title }} — {{ historyReminder()!.patientName }}</div>
+        </div>
+        <button class="modal-close" (click)="closeHistory()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        @if (historyLoading()) {
+          <div class="state-msg">Loading…</div>
+        } @else if (historyError()) {
+          <div class="alert alert-error">{{ historyError() }}</div>
+        } @else if (historyEvents().length === 0) {
+          <div class="state-msg muted">No events found.</div>
+        } @else {
+          <ul class="timeline">
+            @for (e of historyEvents(); track e.id) {
+              <li class="timeline-item">
+                <span class="event-type">{{ e.type }}</span>
+                <span class="event-time">{{ e.occurredAt | date:'medium' }}</span>
+                @if (e.metadata) {
+                  <span class="event-meta">{{ e.metadata }}</span>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  </div>
+}

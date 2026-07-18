@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Take-Home Exercise: Patient Reminders</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #111a2e;
+    --panel-2: #16223c;
+    --ink: #e8eefc;
+    --muted: #9fb0d0;
+    --line: #223252;
+    --accent: #4f9dff;
+    --accent-2: #37e0b0;
+    --accent-3: #f5a623;
+    --accent-4: #b07cff;
+    --danger: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(1200px 700px at 15% -10%, #16223c 0%, var(--bg) 55%);
+    color: var(--ink);
+    font-family: "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    padding: 40px 20px;
+  }
+  .doc {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+    padding: 44px 52px 48px;
+  }
+  .brand {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+  .brand .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 12px var(--accent-2); }
+  h1 { font-size: 30px; margin: 0 0 10px; letter-spacing: 0.2px; }
+  .lede { color: #d4def5; font-size: 16px; margin: 0 0 6px; }
+  .lede.em { color: var(--ink); font-weight: 600; }
+  h2 {
+    font-size: 20px; margin: 34px 0 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  h3 { font-size: 16px; margin: 22px 0 8px; color: var(--accent); }
+  p { margin: 10px 0; color: #d4def5; }
+  ul { margin: 8px 0; padding-left: 22px; }
+  li { margin: 7px 0; color: #cdd8f0; }
+  code {
+    background: #0c1526; border: 1px solid var(--line); border-radius: 5px;
+    padding: 1px 6px; font-family: "Cascadia Code", Consolas, monospace; font-size: 13.5px; color: var(--accent-2);
+  }
+  strong, b { color: var(--ink); }
+  hr { border: none; border-top: 1px solid var(--line); margin: 30px 0; }
+
+  table.glance {
+    width: 100%; border-collapse: collapse; margin: 18px 0 6px;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  }
+  table.glance td { padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.glance tr:last-child td { border-bottom: none; }
+  table.glance td.k { width: 150px; color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: var(--panel-2);
+    border-radius: 0 10px 10px 0;
+    padding: 12px 18px;
+    margin: 16px 0;
+  }
+  .callout.good { border-left-color: var(--accent-2); }
+  .callout.warn { border-left-color: var(--accent-3); }
+  .callout.stop { border-left-color: var(--danger); }
+  .callout p:first-child { margin-top: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .pill {
+    display: inline-block; background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--muted); padding: 3px 12px; border-radius: 999px; font-size: 12.5px; margin: 2px 4px 2px 0;
+  }
+  footer { margin-top: 36px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+  <div class="doc">
+    <div class="brand"><span class="dot"></span> TrendConnect 2.0 · Engineering</div>
+    <h1>Take-Home Exercise: Patient Reminders</h1>
+    <p class="lede">Thanks for your interest in joining the team. This is a small full-stack feature, scoped to respect your time. It mirrors the work you'd actually do here: a .NET service that exposes an API, and an Angular UI that consumes it.</p>
+    <p class="lede em">We care more about how you think than how much you build. A small, clean solution beats a large, rushed one. If you run short on time, prioritize and leave a note about what's unfinished. We'd rather see that than a broken feature.</p>
+
+    <h2>At a glance</h2>
+    <table class="glance">
+      <tr><td class="k">Time cap</td><td>About 4 hours. Please don't go over. If you hit the limit, stop and note what you'd do next.</td></tr>
+      <tr><td class="k">Stack</td><td>.NET (C#) Web API + Angular.</td></tr>
+      <tr><td class="k">Delivery</td><td>Git repo (link or zip) + short README.</td></tr>
+      <tr><td class="k">Follow-up</td><td>A ~45-minute live session where you walk through your code and extend it with us.</td></tr>
+    </table>
+
+    <h2>The scenario</h2>
+    <p>Care teams need to track <strong>reminders</strong> for patients (for example "follow-up call" or "lab results due"). You'll build a small slice of this: an API to manage reminders and a simple UI to view and create them.</p>
+    <p>There's <strong>no real patient data</strong> here. Use made-up values. Treat the reminder's <code>notes</code> field as sensitive and handle it accordingly (see Requirements).</p>
+
+    <h2>What to build</h2>
+
+    <h3>1. Backend (.NET Web API)</h3>
+    <p>Model a <code>Reminder</code> with at least:</p>
+    <ul>
+      <li><code>id</code> (server-generated)</li>
+      <li><code>patientName</code> (string, required)</li>
+      <li><code>title</code> (string, required)</li>
+      <li><code>notes</code> (string, optional; treat as sensitive)</li>
+      <li><code>dueDate</code> (date/time, required)</li>
+      <li><code>status</code> (<code>Open</code> | <code>Done</code>, defaults to <code>Open</code>)</li>
+      <li><code>recurrence</code> (optional; <code>None</code>, <code>Daily</code>, or <code>Weekly</code>; defaults to <code>None</code>)</li>
+      <li><code>createdAt</code> (server-generated)</li>
+    </ul>
+    <p>Expose these endpoints:</p>
+    <ul>
+      <li><code>GET /reminders</code>: list reminders with <strong>pagination, filtering, and sorting</strong> (see below).</li>
+      <li><code>POST /reminders</code>: create a reminder with validation.</li>
+      <li><code>GET /reminders/{id}</code>: fetch a single reminder.</li>
+      <li><code>POST /reminders/{id}/complete</code>: mark a reminder <code>Done</code>. If it recurs, this also creates the next occurrence (see below).</li>
+      <li><code>GET /reminders/{id}/history</code>: return the audit trail of events for that reminder (see below).</li>
+    </ul>
+
+    <p><strong>Recurring reminders.</strong> When someone completes a <code>Daily</code> or <code>Weekly</code> reminder, the API should create the next occurrence automatically: a new <code>Open</code> reminder with its <code>dueDate</code> advanced by the interval, carrying over the other fields. A one-off (<code>None</code>) reminder just becomes <code>Done</code>. There are a few edge cases here, so think them through and write down your assumptions.</p>
+
+    <p><strong>Domain events / audit trail.</strong> Every meaningful change (created, completed, next occurrence generated) should append an <strong>immutable event</strong> to the reminder's history instead of silently mutating state. <code>GET /reminders/{id}/history</code> returns those events in order, each with a type and a timestamp. We want to see append-only, event-style thinking, not a full event-sourcing framework.</p>
+
+    <p><strong>Pagination, filtering, and sorting</strong> on <code>GET /reminders</code>:</p>
+    <ul>
+      <li><strong>Pagination:</strong> support <code>page</code>/<code>pageSize</code> (or a cursor), and return enough metadata for a client to page through (a total count or a next-page indicator).</li>
+      <li><strong>Filtering:</strong> at least by <code>status</code> and a <code>dueDate</code> range.</li>
+      <li><strong>Sorting:</strong> at least by <code>dueDate</code> and <code>createdAt</code>, ascending or descending.</li>
+    </ul>
+
+    <p>Requirements:</p>
+    <ul>
+      <li><strong>Validation</strong> with clear, structured error responses and correct HTTP status codes (for example <code>400</code> for invalid input, <code>404</code> for missing).</li>
+      <li><strong>Persistence:</strong> in-memory or SQLite is fine. No cloud or external infrastructure needed.</li>
+      <li><strong>Safe logging:</strong> never log the <code>notes</code> field or any full record. Log identifiers only.</li>
+      <li>At least a few <strong>automated tests</strong> on the logic that matters most. The recurrence roll-over and the audit trail are good candidates.</li>
+    </ul>
+
+    <h3>2. Frontend (Angular)</h3>
+    <ul>
+      <li>A <strong>list view</strong> showing reminders (title, patient, due date, status, and whether it recurs), with a way to <strong>filter by status</strong> and page through results using the API's pagination.</li>
+      <li>A <strong>create form</strong> wired to <code>POST /reminders</code>, with basic client-side validation and visible <strong>loading</strong> and <strong>error</strong> states.</li>
+      <li>After a successful create, the new reminder should appear in the list.</li>
+    </ul>
+    <p>Keep the styling minimal. Clean and readable is all we need. No design system required.</p>
+
+    <h2>Ground rules &amp; scope</h2>
+    <div class="callout good">
+      <p><strong>Please do:</strong></p>
+      <ul>
+        <li>Keep it runnable with a documented one-command (or few-step) start for both API and UI.</li>
+        <li>Include a short <strong>README</strong> covering: how to run it, key decisions and tradeoffs, and what you'd do next with more time.</li>
+        <li>Use synthetic data only.</li>
+      </ul>
+    </div>
+    <div class="callout stop">
+      <p><strong>Please don't spend time on</strong> (explicitly out of scope):</p>
+      <ul>
+        <li>Authentication / login, real databases, Docker, or deployment.</li>
+        <li>Pixel-perfect design or exhaustive test coverage.</li>
+        <li>Update/delete endpoints (unless you have time to spare and want to).</li>
+      </ul>
+    </div>
+    <div class="callout warn">
+      <p><strong>Using AI assistants (Copilot and the like) is fine.</strong> We use them too. But <strong>you own every line</strong>. In the live session we'll ask you to explain and change your code without an assistant, so make sure you understand all of it.</p>
+    </div>
+
+    <h2>The live follow-up (~45 min)</h2>
+    <p>After you submit, we'll meet for a short session where you'll:</p>
+    <ul>
+      <li><strong>Walk us through</strong> your solution, including the design and a couple of tradeoffs you made.</li>
+      <li><strong>Extend it live.</strong> We'll ask you to add a small enhancement to the code you already wrote. Nothing exotic. If you understand your own solution, you'll be fine.</li>
+    </ul>
+    <p>Have your dev environment ready to run and edit the project during the call.</p>
+
+    <h2>How we evaluate</h2>
+    <p>Here's what we pay attention to. A strong showing in most of these matters more than perfection in any one:</p>
+    <ul>
+      <li><strong>Correctness:</strong> it works, meets the core requirements, and handles sensible edge cases.</li>
+      <li><strong>Code quality and structure:</strong> clean, idiomatic, with concerns separated well across the API and UI.</li>
+      <li><strong>Testing:</strong> meaningful tests on the logic that matters.</li>
+      <li><strong>Data handling:</strong> sensible validation, safe logging, and safe error responses.</li>
+      <li><strong>Integration and UX:</strong> the frontend and backend work together cleanly, with clear loading and error states.</li>
+      <li><strong>Communication:</strong> your README, and how well you explain and extend the work live.</li>
+    </ul>
+    <div class="callout">
+      <p>You don't need to cover every edge case, add fancy styling, or build a big surface area. Show us clean, well-reasoned engineering.</p>
+    </div>
+
+    <h2>Submitting</h2>
+    <p>Send us <strong>one</strong> of:</p>
+    <ul>
+      <li>a link to a Git repository (private is fine, just share access), or</li>
+      <li>a zip of the project (please leave out <code>node_modules</code>, build artifacts, and any secrets).</li>
+    </ul>
+    <p>Put your README at the repo root. If you ran out of time on anything, just say so. We read that as good judgment, not a gap.</p>
+
+    <hr />
+    <footer>Questions before you start? Reply to this email and we'll get back to you quickly. Good luck. We're looking forward to seeing what you build.</footer>
+  </div>
+</body>
+</html>

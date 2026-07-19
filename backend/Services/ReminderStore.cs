@@ -50,7 +50,7 @@ public class ReminderStore(IDbContextFactory<AppDbContext> factory)
         if (q.DueDateTo.HasValue)
             query = query.Where(r => r.DueDate <= q.DueDateTo.Value);
 
-        query = (q.SortBy.ToLower(), q.SortDir.ToLower()) switch
+        query = (q.SortBy?.ToLower() ?? "duedate", q.SortDir?.ToLower() ?? "asc") switch
         {
             ("createdat", "desc") => query.OrderByDescending(r => r.CreatedAt),
             ("createdat", _)      => query.OrderBy(r => r.CreatedAt),

@@ -1,20 +1,14 @@
-using Microsoft.EntityFrameworkCore;
 using PatientReminders.Api.Data;
 using PatientReminders.Api.Models;
 
 namespace PatientReminders.Api.Services;
 
-/// <summary>
-/// Persistence layer backed by SQLite via EF Core.
-/// Uses IDbContextFactory so it can be registered as scoped.
-/// </summary>
-public class ReminderStore(IDbContextFactory<AppDbContext> factory)
+public class ReminderStore(AppDbContext db)
 {
     // ── Reminders ────────────────────────────────────────────────────────────
 
     public Reminder Add(Reminder reminder)
     {
-        using var db = factory.CreateDbContext();
         reminder.Id = Guid.NewGuid();
         reminder.CreatedAt = DateTime.UtcNow;
         reminder.Status = ReminderStatus.Open;
@@ -23,22 +17,16 @@ public class ReminderStore(IDbContextFactory<AppDbContext> factory)
         return reminder;
     }
 
-    public Reminder? GetById(Guid id)
-    {
-        using var db = factory.CreateDbContext();
-        return db.Reminders.Find(id);
-    }
+    public Reminder? GetById(Guid id) => db.Reminders.Find(id);
 
     public void Update(Reminder reminder)
     {
-        using var db = factory.CreateDbContext();
         db.Reminders.Update(reminder);
         db.SaveChanges();
     }
 
     public (IEnumerable<Reminder> Items, int TotalCount) Query(RemindersQuery q)
     {
-        using var db = factory.CreateDbContext();
         IQueryable<Reminder> query = db.Reminders;
 
         if (q.Status.HasValue)
@@ -67,7 +55,6 @@ public class ReminderStore(IDbContextFactory<AppDbContext> factory)
 
     public void AppendEvent(Guid reminderId, EventType type, string? metadata = null)
     {
-        using var db = factory.CreateDbContext();
         db.ReminderEvents.Add(new ReminderEvent
         {
             Id = Guid.NewGuid(),
@@ -79,12 +66,9 @@ public class ReminderStore(IDbContextFactory<AppDbContext> factory)
         db.SaveChanges();
     }
 
-    public IEnumerable<ReminderEvent> GetHistory(Guid reminderId)
-    {
-        using var db = factory.CreateDbContext();
-        return db.ReminderEvents
+    public IEnumerable<ReminderEvent> GetHistory(Guid reminderId) =>
+        db.ReminderEvents
             .Where(e => e.ReminderId == reminderId)
             .OrderBy(e => e.OccurredAt)
             .ToList();
-    }
 }

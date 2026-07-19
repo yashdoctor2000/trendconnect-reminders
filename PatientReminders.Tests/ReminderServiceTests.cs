@@ -13,12 +13,8 @@ public class ReminderServiceTests
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
-        return new ReminderService(new ReminderStore(new TestDbContextFactory(options)), NullLogger<ReminderService>.Instance);
-    }
-
-    private sealed class TestDbContextFactory(DbContextOptions<AppDbContext> options) : IDbContextFactory<AppDbContext>
-    {
-        public AppDbContext CreateDbContext() => new(options);
+        var db = new AppDbContext(options);
+        return new ReminderService(new ReminderStore(db), NullLogger<ReminderService>.Instance);
     }
 
     private static CreateReminderRequest BaseRequest(Recurrence rec = Recurrence.None) => new()
